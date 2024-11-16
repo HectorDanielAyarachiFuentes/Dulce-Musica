@@ -6,63 +6,6 @@
     <link rel="icon" type="image/x-icon" href="img\Dulce.jpg">
     <title>Reproductor de Música</title>
     <script>
-    // Función para guardar canciones en localStorage
-    function guardarCancion(archivo) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const cancion = {
-                nombre: archivo.name,
-                datos: e.target.result,
-                tipo: archivo.type
-            };
-            
-            let canciones = JSON.parse(localStorage.getItem('canciones') || '[]');
-            canciones.push(cancion);
-            localStorage.setItem('canciones', JSON.stringify(canciones));
-            
-            actualizarListaCanciones();
-        };
-        reader.readAsDataURL(archivo);
-    }
-
-    // Función para cargar canciones guardadas
-    function cargarCancionesGuardadas() {
-        const canciones = JSON.parse(localStorage.getItem('canciones') || '[]');
-        const select = document.getElementById('selectTrack');
-        
-        canciones.forEach(cancion => {
-            const option = document.createElement('option');
-            option.value = cancion.datos;
-            option.setAttribute('data-tipo', cancion.tipo);
-            option.textContent = cancion.nombre;
-            select.appendChild(option);
-        });
-    }
-
-    // Función para actualizar la lista de canciones
-    function actualizarListaCanciones() {
-        const select = document.getElementById('selectTrack');
-        const canciones = JSON.parse(localStorage.getItem('canciones') || '[]');
-        
-        // Mantener las canciones originales
-        const opcionesOriginales = Array.from(select.options)
-            .filter(opt => !opt.value.startsWith('data:'));
-        
-        select.innerHTML = '';
-        
-        // Restaurar opciones originales
-        opcionesOriginales.forEach(opt => select.appendChild(opt));
-        
-        // Agregar canciones guardadas
-        canciones.forEach(cancion => {
-            const option = document.createElement('option');
-            option.value = cancion.datos;
-            option.setAttribute('data-tipo', cancion.tipo);
-            option.textContent = cancion.nombre;
-            select.appendChild(option);
-        });
-    }
-
     function crearVisualizador(audio) {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const analyser = audioContext.createAnalyser();
@@ -146,13 +89,9 @@
     }
 
     function cambiarTrack(track) {
-        const value = track.value || track.getAttribute("value");
-        const tipo = track.dataset.tipo || 'audio/mpeg';
-        
+        const value = track.getAttribute("value");
         const viejo_audio = document.getElementById("reproductor");
-        if (viejo_audio) {
-            viejo_audio.parentNode.removeChild(viejo_audio);
-        }
+        viejo_audio.parentNode.removeChild(viejo_audio);
         
         const canvasViejo = document.querySelector('#visualizadorBox canvas');
         if (canvasViejo) canvasViejo.remove();
@@ -161,13 +100,13 @@
         if (imagenVieja) imagenVieja.remove();
         
         const nuevo_audio = document.createElement("audio");
-        nuevo_audio.setAttribute("id", "reproductor");
+        nuevo_audio.setAttribute("id","reproductor");
         nuevo_audio.setAttribute("controls", "controls");
         nuevo_audio.setAttribute("crossorigin", "anonymous");
         
         const source = document.createElement("source");
         source.setAttribute("src", value);
-        source.setAttribute("type", tipo);
+        source.setAttribute("type", "audio/mpeg");
         source.setAttribute("id", "reproductorSource");
         
         nuevo_audio.appendChild(source);
@@ -210,9 +149,6 @@
             cambiarTrack(select.options[nextIndex]);
             document.getElementById("reproductor").play();
         });
-
-        // Cargar canciones guardadas al iniciar
-        cargarCancionesGuardadas();
     }
     </script>
     <style>
@@ -299,27 +235,6 @@
             height: auto;
         }
 
-        .subir-musica {
-            background: #4a4e69;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        .subir-musica:hover {
-            background: #6d72a3;
-            transform: translateY(-2px);
-        }
-
-        #inputMusica {
-            display: none;
-        }
-
         @media (max-width: 768px) {
             .contenedor-principal {
                 flex-direction: column;
@@ -361,8 +276,6 @@
             <div id="audioBox"></div>
         </div>
         <div class="contenedor-derecho">
-            <label class="subir-musica" for="inputMusica">📁 Subir Música</label>
-            <input type="file" id="inputMusica" accept="audio/*" onchange="guardarCancion(this.files[0])">
             <select id="selectTrack" multiple onchange="cambiarTrack(this.options[this.selectedIndex]);">
                 <option value="Musica\Camila - Perdón - camila.mp3">Camila - Perdón</option>
                 <option value="Musica\Reik - Me Duele Amarte - reik.mp3">Reik - Me Duele Amarte</option>
