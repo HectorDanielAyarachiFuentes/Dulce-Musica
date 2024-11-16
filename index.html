@@ -6,6 +6,63 @@
     <link rel="icon" type="image/x-icon" href="img\Dulce.jpg">
     <title>Reproductor de Música</title>
     <script>
+    // Función para guardar canciones en localStorage
+    function guardarCancion(archivo) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const cancion = {
+                nombre: archivo.name,
+                datos: e.target.result,
+                tipo: archivo.type
+            };
+            
+            let canciones = JSON.parse(localStorage.getItem('canciones') || '[]');
+            canciones.push(cancion);
+            localStorage.setItem('canciones', JSON.stringify(canciones));
+            
+            actualizarListaCanciones();
+        };
+        reader.readAsDataURL(archivo);
+    }
+
+    // Función para cargar canciones guardadas
+    function cargarCancionesGuardadas() {
+        const canciones = JSON.parse(localStorage.getItem('canciones') || '[]');
+        const select = document.getElementById('selectTrack');
+        
+        canciones.forEach(cancion => {
+            const option = document.createElement('option');
+            option.value = cancion.datos;
+            option.setAttribute('data-tipo', cancion.tipo);
+            option.textContent = cancion.nombre;
+            select.appendChild(option);
+        });
+    }
+
+    // Función para actualizar la lista de canciones
+    function actualizarListaCanciones() {
+        const select = document.getElementById('selectTrack');
+        const canciones = JSON.parse(localStorage.getItem('canciones') || '[]');
+        
+        // Mantener las canciones originales
+        const opcionesOriginales = Array.from(select.options)
+            .filter(opt => !opt.value.startsWith('data:'));
+        
+        select.innerHTML = '';
+        
+        // Restaurar opciones originales
+        opcionesOriginales.forEach(opt => select.appendChild(opt));
+        
+        // Agregar canciones guardadas
+        canciones.forEach(cancion => {
+            const option = document.createElement('option');
+            option.value = cancion.datos;
+            option.setAttribute('data-tipo', cancion.tipo);
+            option.textContent = cancion.nombre;
+            select.appendChild(option);
+        });
+    }
+
     function crearVisualizador(audio) {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const analyser = audioContext.createAnalyser();
@@ -23,7 +80,6 @@
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
 
-        // Agregar imagen bailarina
         const imagen = document.createElement('img');
         imagen.src = 'img/Dulce.jpg';
         imagen.style.display = 'block';
@@ -42,7 +98,6 @@
             let barHeight;
             let x = 0;
             
-            // Efecto de ondas
             ctx.beginPath();
             ctx.moveTo(0, canvas.height / 2);
             
@@ -52,9 +107,9 @@
                 barHeight = dataArray[i] / 2;
                 energiaTotal += dataArray[i];
                 
-                const h = 200 + (i / bufferLength) * 60; // Rango de azul a violeta
-                const s = 70 + (dataArray[i] / 255) * 30; // Saturación dinámica
-                const l = 40 + (dataArray[i] / 255) * 20; // Luminosidad dinámica
+                const h = 200 + (i / bufferLength) * 60;
+                const s = 70 + (dataArray[i] / 255) * 30;
+                const l = 40 + (dataArray[i] / 255) * 20;
                 
                 ctx.fillStyle = `hsl(${h}, ${s}%, ${l}%)`;
                 
@@ -67,7 +122,6 @@
                 x += barWidth + 1;
             }
             
-            // Animar imagen según la energía del audio
             const escala = 1 + (energiaTotal / bufferLength / 1000);
             const rotacion = (energiaTotal / bufferLength) * 0.1;
             imagen.style.transform = `scale(${escala}) rotate(${rotacion}deg)`;
@@ -81,7 +135,7 @@
             }
             const promedio = suma / bufferLength;
             
-            const hue = 200 + (promedio / 255) * 60; // Mantener en tonos azul-violeta
+            const hue = 200 + (promedio / 255) * 60;
             const saturacion = Math.min(30 + (promedio / 255) * 20, 50);
             const luminosidad = Math.min(15 + (promedio / 255) * 15, 30);
             
@@ -92,60 +146,54 @@
     }
 
     function cambiarTrack(track) {
-        var value = track.getAttribute("value");
-        var viejo_audio = document.getElementById("reproductor");
-        var audio_padre = viejo_audio.parentNode;
-        audio_padre.removeChild(viejo_audio);
+        const value = track.value || track.getAttribute("value");
+        const tipo = track.dataset.tipo || 'audio/mpeg';
+        
+        const viejo_audio = document.getElementById("reproductor");
+        if (viejo_audio) {
+            viejo_audio.parentNode.removeChild(viejo_audio);
+        }
         
         const canvasViejo = document.querySelector('#visualizadorBox canvas');
-        if (canvasViejo) {
-            canvasViejo.remove();
-        }
+        if (canvasViejo) canvasViejo.remove();
         
         const imagenVieja = document.querySelector('#visualizadorBox img');
-        if (imagenVieja) {
-            imagenVieja.remove();
-        }
+        if (imagenVieja) imagenVieja.remove();
         
-        var nuevo_audio = document.createElement("audio");
-        nuevo_audio.setAttribute("id","reproductor");
+        const nuevo_audio = document.createElement("audio");
+        nuevo_audio.setAttribute("id", "reproductor");
         nuevo_audio.setAttribute("controls", "controls");
         nuevo_audio.setAttribute("crossorigin", "anonymous");
         
-        var source = document.createElement("source");
+        const source = document.createElement("source");
         source.setAttribute("src", value);
-        source.setAttribute("type", "audio/mpeg");
+        source.setAttribute("type", tipo);
         source.setAttribute("id", "reproductorSource");
         
         nuevo_audio.appendChild(source);
         document.getElementById('audioBox').appendChild(nuevo_audio);
         
-        nuevo_audio.addEventListener('play', () => {
-            crearVisualizador(nuevo_audio);
-        });
+        nuevo_audio.addEventListener('play', () => crearVisualizador(nuevo_audio));
 
-        // Agregar evento para reproducción automática
         nuevo_audio.addEventListener('ended', () => {
             const select = document.getElementById("selectTrack");
-            const currentIndex = select.selectedIndex;
-            const nextIndex = (currentIndex + 1) % select.options.length;
+            const nextIndex = (select.selectedIndex + 1) % select.options.length;
             select.selectedIndex = nextIndex;
             cambiarTrack(select.options[nextIndex]);
-            const nuevoAudio = document.getElementById("reproductor");
-            nuevoAudio.play();
+            document.getElementById("reproductor").play();
         });
     }
 
     function cargarReproductor() {
-        var select = document.getElementById("selectTrack");
-        var value = select.options[0].getAttribute("value");
+        const select = document.getElementById("selectTrack");
+        const value = select.options[0].getAttribute("value");
         
-        var nuevo_audio = document.createElement("audio");
+        const nuevo_audio = document.createElement("audio");
         nuevo_audio.setAttribute("id","reproductor");
         nuevo_audio.setAttribute("controls", "controls");
         nuevo_audio.setAttribute("crossorigin", "anonymous");
         
-        var source = document.createElement("source");
+        const source = document.createElement("source");
         source.setAttribute("src", value);
         source.setAttribute("type", "audio/mpeg");
         source.setAttribute("id", "reproductorSource");
@@ -153,24 +201,23 @@
         nuevo_audio.appendChild(source);
         document.getElementById('audioBox').appendChild(nuevo_audio);
         
-        nuevo_audio.addEventListener('play', () => {
-            crearVisualizador(nuevo_audio);
-        });
+        nuevo_audio.addEventListener('play', () => crearVisualizador(nuevo_audio));
 
-        // Agregar evento para reproducción automática
         nuevo_audio.addEventListener('ended', () => {
             const select = document.getElementById("selectTrack");
             const nextIndex = 1 % select.options.length;
             select.selectedIndex = nextIndex;
             cambiarTrack(select.options[nextIndex]);
-            const nuevoAudio = document.getElementById("reproductor");
-            nuevoAudio.play();
+            document.getElementById("reproductor").play();
         });
+
+        // Cargar canciones guardadas al iniciar
+        cargarCancionesGuardadas();
     }
     </script>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
@@ -199,17 +246,11 @@
             gap: 20px;
         }
 
-        #visualizadorBox {
+        #visualizadorBox, #audioBox {
             background: rgba(16, 16, 28, 0.95);
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        #audioBox {
-            background: rgba(16, 16, 28, 0.95);
-            padding: 20px;
-            border-radius: 10px;
         }
 
         .contenedor-derecho {
@@ -246,11 +287,6 @@
             color: #ffffff;
         }
 
-        select option:hover {
-            background-color: #6d72a3;
-            color: #ffffff;
-        }
-
         audio {
             width: 100%;
             margin-top: 10px;
@@ -263,14 +299,25 @@
             height: auto;
         }
 
-        @keyframes rainbow {
-            /* eliminar este bloque completo */
+        .subir-musica {
+            background: #4a4e69;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            margin-bottom: 10px;
+            display: block;
         }
 
-        select option:hover {
-            background-color: #6d72a3;
-            color: #ffffff;
-            /* eliminar la animación rainbow */
+        .subir-musica:hover {
+            background: #6d72a3;
+            transform: translateY(-2px);
+        }
+
+        #inputMusica {
+            display: none;
         }
 
         @media (max-width: 768px) {
@@ -314,6 +361,8 @@
             <div id="audioBox"></div>
         </div>
         <div class="contenedor-derecho">
+            <label class="subir-musica" for="inputMusica">📁 Subir Música</label>
+            <input type="file" id="inputMusica" accept="audio/*" onchange="guardarCancion(this.files[0])">
             <select id="selectTrack" multiple onchange="cambiarTrack(this.options[this.selectedIndex]);">
                 <option value="Musica\Camila - Perdón - camila.mp3">Camila - Perdón</option>
                 <option value="Musica\Reik - Me Duele Amarte - reik.mp3">Reik - Me Duele Amarte</option>
