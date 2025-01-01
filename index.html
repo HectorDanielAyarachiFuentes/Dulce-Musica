@@ -5,6 +5,138 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="img\Dulce.jpg">
     <title>Reproductor de Música</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            transition: background-color 0.3s ease;
+        }
+
+        h1 {
+            text-align: center;
+            color: #e6e6e6;
+            margin-bottom: 30px;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+        }
+
+        .contenedor-principal {
+            display: flex;
+            gap: 20px;
+            flex-direction: row;
+        }
+
+        .contenedor-izquierdo {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        #visualizadorBox, #audioBox {
+            background: rgba(16, 16, 28, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .contenedor-derecho {
+            flex: 1;
+        }
+
+        canvas {
+            width: 100%;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #4a4e69;
+            border-radius: 8px;
+            background-color: #22223b;
+            color: #e6e6e6;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            height: 100%;
+            min-height: 200px;
+        }
+
+        select:hover {
+            border-color: #6d72a3;
+            transform: translateY(-2px);
+        }
+
+        select option:checked {
+            background-color: #4a4e69;
+            color: #ffffff;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 30px;
+        }
+
+        img {
+            transition: transform 0.1s ease;
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (max-width: 768px) {
+            .contenedor-principal {
+                flex-direction: column;
+            }
+
+            .contenedor-izquierdo {
+                order: 1;
+            }
+
+            .contenedor-derecho {
+                order: 2;
+            }
+
+            select {
+                min-height: 150px;
+            }
+
+            body {
+                padding: 10px;
+            }
+
+            canvas {
+                height: auto;
+            }
+
+            img {
+                max-width: 150px;
+                margin: 10px auto;
+            }
+        }
+
+        #visualizadorBox canvas {
+            display: block;
+            margin: 20px auto;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #visualizadorBox img {
+            display: block;
+            margin: 20px auto;
+            border-radius: 50%;
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
     <script>
     function crearVisualizador(audio) {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -27,7 +159,6 @@
         imagen.src = 'img/Dulce.jpg';
         imagen.style.display = 'block';
         imagen.style.margin = '20px auto';
-        imagen.style.maxWidth = '200px';
         document.getElementById('visualizadorBox').appendChild(imagen);
         
         function animarVisualizador() {
@@ -151,121 +282,6 @@
         });
     }
     </script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #1a1a2e;
-            color: #e6e6e6;
-            transition: background-color 0.3s ease;
-        }
-
-        h1 {
-            text-align: center;
-            color: #e6e6e6;
-            margin-bottom: 30px;
-            font-size: clamp(1.5rem, 4vw, 2.5rem);
-        }
-
-        .contenedor-principal {
-            display: flex;
-            gap: 20px;
-            flex-direction: row;
-        }
-
-        .contenedor-izquierdo {
-            flex: 2;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        #visualizadorBox, #audioBox {
-            background: rgba(16, 16, 28, 0.95);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .contenedor-derecho {
-            flex: 1;
-        }
-
-        canvas {
-            width: 100%;
-            margin: 10px 0;
-            border-radius: 5px;
-        }
-
-        select {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #4a4e69;
-            border-radius: 8px;
-            background-color: #22223b;
-            color: #e6e6e6;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            height: 100%;
-            min-height: 200px;
-        }
-
-        select:hover {
-            border-color: #6d72a3;
-            transform: translateY(-2px);
-        }
-
-        select option:checked {
-            background-color: #4a4e69;
-            color: #ffffff;
-        }
-
-        audio {
-            width: 100%;
-            margin-top: 10px;
-            border-radius: 30px;
-        }
-
-        img {
-            transition: transform 0.1s ease;
-            max-width: 100%;
-            height: auto;
-        }
-
-        @media (max-width: 768px) {
-            .contenedor-principal {
-                flex-direction: column;
-            }
-
-            .contenedor-izquierdo {
-                order: 1;
-            }
-
-            .contenedor-derecho {
-                order: 2;
-            }
-
-            select {
-                min-height: 150px;
-            }
-
-            body {
-                padding: 10px;
-            }
-
-            canvas {
-                height: auto;
-            }
-
-            img {
-                max-width: 150px;
-                margin: 10px auto;
-            }
-        }
-    </style>
 </head>
 <body>
     <h1>🎵 Reproductor de Música 🎵</h1>
